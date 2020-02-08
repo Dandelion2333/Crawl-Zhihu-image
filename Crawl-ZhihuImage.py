@@ -12,7 +12,8 @@ from lxml import html
 
 UrlDataCnt = 1
 SaveImageCnt = 1
-ObjectUrlPage = 5
+ObjectUrlPage = 0
+LastImage = 0
 
 QuestionId = 1
 DefaultFolder = "download-zhihu-image"
@@ -27,7 +28,7 @@ def DefualtMode():
     global DownloadFolder
     global QuestionId
     DownloadFolder = DefaultFolder      # default save folder
-    QuestionId = 34243513               # default id
+    QuestionId = 297715922              # default id
 
 def InputMessage():
     global QuestionId
@@ -76,7 +77,7 @@ def ParseHtmlData(html):
             Formula = "(ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?" 
 
             Content = item['content']          
-            #print("Content", Content)
+            print("Content", Content)
 
             p = re.compile(Formula)
             iterator = p.finditer(Content)
@@ -84,7 +85,7 @@ def ParseHtmlData(html):
                 #print(match.span())
                 #print(match.group())
                 UrlData.append(match.group())
-                #print(match.group(1))
+                print("match:",match.group())
 
         return UrlData
     
@@ -98,21 +99,28 @@ def SaveImage(Image):
 
     ImagePath = os.path.join(DownloadFolder, ImageName)
     with open(ImagePath, 'wb') as  f:
-        print('Output:', ImagePath)
+        #print('Output:', ImagePath)
         f.write(Image)
 
 def ParseImageData(ImageUrl):
     resp = requests.get(ImageUrl)
     Image = resp.content
-    SaveImage(Image)
+    #print("Image:",Image)
+    # remove the same picture
+    global LastImage
+    if LastImage != Image:
+        SaveImage(Image)
+    LastImage = Image
     
 def ParseImageUrlData(UrlData):
     global UrlDataCnt
     for Url in UrlData:
-        if UrlDataCnt % 4 == 0:
-            print#("Url:", Url)
-            ParseImageData(Url)
-        UrlDataCnt += 1     
+        print("Url:", Url)
+        ParseImageData(Url)
+        # if UrlDataCnt % 4 == 0:
+        #     #print("Url:", Url)
+        #     #ParseImageData(Url)
+        # UrlDataCnt += 1     
 
 def GetObjectUrl():
     # print("ObjectUrlPage:", ObjectUrlPage)
